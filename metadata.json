@@ -1,0 +1,5 @@
+{
+  "name": "Clinic Appointment Booker",
+  "description": "A web application for patients to book medical appointments online. It features a simple form to enter patient details, select a reason for the visit, and choose an available date and time slot according to the clinic's schedule, preventing any double bookings.",
+  "requestFramePermissions": []
+}
