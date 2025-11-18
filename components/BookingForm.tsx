@@ -14,7 +14,7 @@ const initialPatientState: Patient = {
 };
 
 interface BookingFormProps {
-  onBookAppointment: (appointment: Appointment) => boolean;
+  onBookAppointment: (appointment: Appointment) => Promise<boolean>;
   bookedSlots: Date[];
 }
 
@@ -24,12 +24,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [error, setError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handlePatientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPatient((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   const resetForm = useCallback(() => {
     setPatient(initialPatientState);
     setReason(REASONS_FOR_VISIT[0]);
@@ -38,23 +39,35 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
     setError('');
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!patient.name || !patient.dob || !patient.parentName || !patient.phone || !selectedSlot) {
       setError('Vui lòng điền đầy đủ thông tin bắt buộc và chọn một khung giờ.');
       return;
     }
-    setError('');
-    
-    const appointment: Appointment = {
-      patient,
-      reason,
-      dateTime: selectedSlot,
-    };
 
-    const success = onBookAppointment(appointment);
-    if(success) {
-      resetForm();
+    if (isSubmitting) {
+      return; // Prevent double submission
+    }
+
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const appointment: Appointment = {
+        patient,
+        reason,
+        dateTime: selectedSlot,
+      };
+
+      const success = await onBookAppointment(appointment);
+      if(success) {
+        resetForm();
+      }
+    } catch (error) {
+      setError('Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -155,11 +168,27 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
         )}
 
         <div className="text-center pt-4">
-          <button type="submit" className="group relative w-full md:w-auto inline-flex items-center justify-center gap-2 py-4 px-12 border border-transparent shadow-lg text-lg font-bold rounded-2xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
-            <svg className="w-6 h-6 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Đặt Lịch Hẹn
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="group relative w-full md:w-auto inline-flex items-center justify-center gap-2 py-4 px-12 border border-transparent shadow-lg text-lg font-bold rounded-2xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                <svg className="w-6 h-6 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Đặt Lịch Hẹn
+              </>
+            )}
           </button>
         </div>
       </form>

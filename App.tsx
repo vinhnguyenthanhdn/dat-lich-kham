@@ -3,26 +3,59 @@ import React, { useState, useCallback } from 'react';
 import { BookingForm } from './components/BookingForm';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import type { Appointment } from './types';
+import { insertAppointment, type AppointmentRow } from './lib/supabase';
 
 function App() {
   const [bookedSlots, setBookedSlots] = useState<Date[]>([]);
   const [confirmedAppointment, setConfirmedAppointment] = useState<Appointment | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleBookAppointment = useCallback((appointment: Appointment) => {
-    // In a real app, you would check for conflicts on the server here.
+  const handleBookAppointment = useCallback(async (appointment: Appointment) => {
+    // Check for local conflicts first
     const isConflict = bookedSlots.some(
       (slot) => slot.getTime() === appointment.dateTime.getTime()
     );
 
     if (isConflict) {
-      alert('This time slot has just been booked. Please select another one.');
+      alert('Khung giờ này đã được đặt. Vui lòng chọn khung giờ khác.');
       return false;
     }
 
-    setBookedSlots((prevSlots) => [...prevSlots, appointment.dateTime]);
-    setConfirmedAppointment(appointment);
-    return true;
-  }, [bookedSlots]);
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      return false;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Save to Supabase
+      const appointmentRow: AppointmentRow = {
+        patient_name: appointment.patient.name,
+        patient_dob: appointment.patient.dob,
+        parent_name: appointment.patient.parentName,
+        patient_address: appointment.patient.address || null,
+        patient_phone: appointment.patient.phone,
+        reason: appointment.reason,
+        appointment_date: appointment.dateTime.toISOString(),
+        status: 'pending',
+      };
+
+      await insertAppointment(appointmentRow);
+
+      // Update local state
+      setBookedSlots((prevSlots) => [...prevSlots, appointment.dateTime]);
+      setConfirmedAppointment(appointment);
+
+      return true;
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      alert('Có lỗi xảy ra khi đặt lịch. Vui lòng thử lại sau.');
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [bookedSlots, isSubmitting]);
 
   const closeConfirmationModal = () => {
     setConfirmedAppointment(null);
