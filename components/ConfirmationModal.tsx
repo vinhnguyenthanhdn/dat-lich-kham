@@ -33,10 +33,20 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-400 via-emerald-400 to-teal-500 opacity-10"></div>
 
         <div className="relative z-10">
-          <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 mb-5 shadow-lg animate-bounce-in">
-            <svg className="h-12 w-12 text-white animate-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-            </svg>
+          {/* Success Icon with Logo Background */}
+          <div className="relative mx-auto w-24 h-24 mb-5 animate-bounce-in">
+            <img
+              src="/logo.jpg"
+              alt="Logo"
+              className="w-24 h-24 rounded-full object-cover opacity-20 absolute inset-0"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
+                <svg className="h-12 w-12 text-white animate-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Đặt Lịch Thành Công!</h2>

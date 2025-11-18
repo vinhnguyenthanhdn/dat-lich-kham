@@ -37,11 +37,18 @@ function App() {
 
       <div className="w-full max-w-4xl mx-auto relative z-10">
         <header className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+              <img
+                src="/logo.jpg"
+                alt="Logo Phòng Khám"
+                className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover shadow-2xl border-4 border-white transform group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
           </div>
+
           <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-3">
             Đặt Lịch Khám
           </h1>

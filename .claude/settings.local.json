@@ -4,7 +4,9 @@
       "Bash(npm run dev:*)",
       "Bash(npm install:*)",
       "Bash(npx tailwindcss init -p)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(dir:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []
