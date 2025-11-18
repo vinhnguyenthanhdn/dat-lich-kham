@@ -8,6 +8,7 @@ import { CalendarIcon } from './icons/CalendarIcon';
 const initialPatientState: Patient = {
   name: '',
   dob: '',
+  parentName: '',
   address: '',
   phone: '',
 };
@@ -39,7 +40,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patient.name || !patient.dob || !patient.phone || !selectedSlot) {
+    if (!patient.name || !patient.dob || !patient.parentName || !patient.phone || !selectedSlot) {
       setError('Vui lòng điền đầy đủ thông tin bắt buộc và chọn một khung giờ.');
       return;
     }
@@ -60,48 +61,74 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/50">
+      <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <h2 className="text-2xl font-semibold text-slate-700 md:col-span-2">Thông tin bệnh nhân</h2>
-          
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Tên bệnh nhân <span className="text-red-500">*</span></label>
-            <input type="text" id="name" name="name" value={patient.name} onChange={handlePatientChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+          <div className="md:col-span-2 flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">Thông tin bệnh nhân</h2>
           </div>
           
-          <div>
-            <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh <span className="text-red-500">*</span></label>
-            <input type="date" id="dob" name="dob" value={patient.dob} onChange={handlePatientChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+          <div className="group">
+            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">Tên bệnh nhân <span className="text-red-500">*</span></label>
+            <input type="text" id="name" name="name" value={patient.name} onChange={handlePatientChange} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300" placeholder="Nhập tên bệnh nhân"/>
           </div>
-          
-          <div className="md:col-span-2">
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
-            <input type="text" id="address" name="address" value={patient.address} onChange={handlePatientChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+
+          <div className="group">
+            <label htmlFor="dob" className="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh <span className="text-red-500">*</span></label>
+            <input type="date" id="dob" name="dob" value={patient.dob} onChange={handlePatientChange} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300"/>
           </div>
-          
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại <span className="text-red-500">*</span></label>
-            <input type="tel" id="phone" name="phone" value={patient.phone} onChange={handlePatientChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+
+          <div className="group">
+            <label htmlFor="parentName" className="block text-sm font-semibold text-gray-700 mb-2">Tên bố/mẹ <span className="text-red-500">*</span></label>
+            <input type="text" id="parentName" name="parentName" value={patient.parentName} onChange={handlePatientChange} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300" placeholder="Nhập tên bố hoặc mẹ"/>
+          </div>
+
+          <div className="group">
+            <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại <span className="text-red-500">*</span></label>
+            <input type="tel" id="phone" name="phone" value={patient.phone} onChange={handlePatientChange} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300" placeholder="0xxx xxx xxx"/>
+          </div>
+
+          <div className="md:col-span-2 group">
+            <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ</label>
+            <input type="text" id="address" name="address" value={patient.address} onChange={handlePatientChange} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300" placeholder="Nhập địa chỉ (tùy chọn)"/>
           </div>
         </div>
 
-        <hr className="border-t border-gray-200" />
-        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t-2 border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white px-4 text-sm text-gray-500 font-medium">Lịch khám</span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          <h2 className="text-2xl font-semibold text-slate-700 md:col-span-2">Thông tin lịch hẹn</h2>
+          <div className="md:col-span-2 flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">Thông tin lịch hẹn</h2>
+          </div>
           
-          <div>
-            <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">Vấn đề cần khám</label>
-            <select id="reason" name="reason" value={reason} onChange={(e) => setReason(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <div className="group">
+            <label htmlFor="reason" className="block text-sm font-semibold text-gray-700 mb-2">Vấn đề cần khám</label>
+            <select id="reason" name="reason" value={reason} onChange={(e) => setReason(e.target.value)} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300 bg-white cursor-pointer">
               {REASONS_FOR_VISIT.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
-          
-          <div className="relative">
-            <label htmlFor="appointmentDate" className="block text-sm font-medium text-gray-700 mb-1">Chọn ngày khám <span className="text-red-500">*</span></label>
+
+          <div className="relative group">
+            <label htmlFor="appointmentDate" className="block text-sm font-semibold text-gray-700 mb-2">Chọn ngày khám <span className="text-red-500">*</span></label>
             <div className="relative">
-              <input type="date" id="appointmentDate" name="appointmentDate" value={selectedDate} onChange={(e) => {setSelectedDate(e.target.value); setSelectedSlot(null);}} min={today} required className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 pr-10"/>
+              <input type="date" id="appointmentDate" name="appointmentDate" value={selectedDate} onChange={(e) => {setSelectedDate(e.target.value); setSelectedSlot(null);}} min={today} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10 transition-all duration-200 group-hover:border-gray-300"/>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <CalendarIcon className="h-5 w-5 text-gray-400" />
               </div>
@@ -118,10 +145,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
           </div>
         </div>
         
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        
+        {error && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <svg className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-700 text-sm font-medium">{error}</p>
+          </div>
+        )}
+
         <div className="text-center pt-4">
-          <button type="submit" className="w-full md:w-auto inline-flex justify-center py-3 px-12 border border-transparent shadow-sm text-lg font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
+          <button type="submit" className="group relative w-full md:w-auto inline-flex items-center justify-center gap-2 py-4 px-12 border border-transparent shadow-lg text-lg font-bold rounded-2xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+            <svg className="w-6 h-6 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
             Đặt Lịch Hẹn
           </button>
         </div>

@@ -7,6 +7,7 @@ export const REASONS_FOR_VISIT: string[] = [
   'Sa tạng chậu',
   'Đau khớp',
   'Vật lý trị liệu hô hấp (lấy đờm)',
+  'Vấn đề khác',
 ];
 
 // Time slots for each day. 0 = Sunday, 6 = Saturday
