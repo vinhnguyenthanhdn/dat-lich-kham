@@ -50,7 +50,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
           </div>
 
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Đặt Lịch Thành Công!</h2>
-          <p className="text-gray-600 mb-8 text-base">Lịch hẹn của bạn đã được xác nhận. Vui lòng kiểm tra lại thông tin dưới đây.</p>
+          <p className="text-gray-600 mb-2 text-base">Lịch hẹn của bạn đã được xác nhận. Vui lòng kiểm tra lại thông tin dưới đây.</p>
+          <p className="text-indigo-600 font-semibold italic mb-6 text-sm">✨ Vì một thế hệ trẻ khỏe mạnh và toàn diện ✨</p>
 
           <div className="text-left bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl border-2 border-gray-200 space-y-4 shadow-inner">
             <div className="flex items-start gap-3">
@@ -60,6 +61,16 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
               <div>
                 <p className="text-xs text-gray-500 font-medium mb-1">Bệnh nhân</p>
                 <p className="font-bold text-gray-900">{patient.name}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <div>
+                <p className="text-xs text-gray-500 font-medium mb-1">Phụ huynh</p>
+                <p className="font-bold text-gray-900">{patient.parentName}</p>
               </div>
             </div>
 
