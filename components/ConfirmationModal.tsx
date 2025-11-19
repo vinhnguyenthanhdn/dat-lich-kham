@@ -52,7 +52,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
           <h2 className="text-3xl font-bold text-gray-800 mb-3">Đặt Lịch Thành Công!</h2>
 
           {/* Beautiful Thank You Section */}
-          <div className="relative mb-6 py-6 px-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 shadow-lg">
+          <div className="relative mb-6 pt-8 pb-6 px-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 shadow-lg">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <div className="bg-white rounded-full p-2 shadow-md">
                 <svg className="w-8 h-8 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
@@ -60,7 +60,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
                 </svg>
               </div>
             </div>
-            <div className="mt-2">
+            <div className="mt-4">
               <p className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                 Phòng khám bác sĩ Cẩm Vân
               </p>
