@@ -177,13 +177,18 @@ export async function getDashboardStats() {
   };
 }
 
-// Get appointments grouped by date for chart (last 30 days)
-export async function getAppointmentsByDate(days: number = 30) {
-  const endDate = new Date();
-  endDate.setHours(23, 59, 59, 999);
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
+// Get appointments grouped by date for chart with date range
+export async function getAppointmentsByDate(daysBefore: number = 15, daysAfter: number = 15) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - daysBefore);
   startDate.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() + daysAfter);
+  endDate.setHours(23, 59, 59, 999);
 
   const { data, error } = await supabase
     .from('appointments')
@@ -204,10 +209,20 @@ export async function getAppointmentsByDate(days: number = 30) {
     return acc;
   }, {});
 
-  return Object.entries(grouped).map(([date, count]) => ({
-    date,
-    count,
-  }));
+  // Fill in missing dates with 0 count
+  const result: Array<{ date: string; count: number }> = [];
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    result.push({
+      date: dateStr,
+      count: grouped[dateStr] || 0,
+    });
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return result;
 }
 
 // Update appointment status

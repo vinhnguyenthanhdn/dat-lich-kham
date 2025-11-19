@@ -38,17 +38,19 @@ export default function AdminDashboard() {
   const [todayAppointments, setTodayAppointments] = useState<AppointmentRow[]>([]);
   const [tomorrowAppointments, setTomorrowAppointments] = useState<AppointmentRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [daysBefore, setDaysBefore] = useState(15);
+  const [daysAfter, setDaysAfter] = useState(15);
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [daysBefore, daysAfter]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const [statsData, chartData, todayData, tomorrowData] = await Promise.all([
         getDashboardStats(),
-        getAppointmentsByDate(30),
+        getAppointmentsByDate(daysBefore, daysAfter),
         getTodayAppointments(),
         getTomorrowAppointments(),
       ]);
@@ -169,9 +171,62 @@ export default function AdminDashboard() {
 
         {/* Chart */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
-            Biểu đồ lịch hẹn (30 ngày gần đây)
-          </h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h2 className="text-xl font-bold text-gray-800">
+              Biểu đồ lịch hẹn
+            </h2>
+
+            {/* Time Range Controls */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 whitespace-nowrap">
+                  {daysBefore} ngày trước
+                </label>
+                <input
+                  type="range"
+                  min="7"
+                  max="60"
+                  value={daysBefore}
+                  onChange={(e) => setDaysBefore(Number(e.target.value))}
+                  className="w-24 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+              </div>
+
+              <div className="flex items-center justify-center px-3 py-1 bg-blue-100 text-blue-800 rounded-lg font-semibold text-sm">
+                Hôm nay
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="7"
+                  max="60"
+                  value={daysAfter}
+                  onChange={(e) => setDaysAfter(Number(e.target.value))}
+                  className="w-24 h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                />
+                <label className="text-sm text-gray-600 whitespace-nowrap">
+                  {daysAfter} ngày sau
+                </label>
+              </div>
+
+              <button
+                onClick={() => {
+                  setDaysBefore(15);
+                  setDaysAfter(15);
+                }}
+                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                title="Reset về mặc định"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-600 mb-4">
+            Hiển thị từ {format(new Date(new Date().setDate(new Date().getDate() - daysBefore)), 'dd/MM/yyyy', { locale: vi })} đến {format(new Date(new Date().setDate(new Date().getDate() + daysAfter)), 'dd/MM/yyyy', { locale: vi })} ({daysBefore + daysAfter + 1} ngày)
+          </div>
+
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
