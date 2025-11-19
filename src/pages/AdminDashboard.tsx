@@ -39,19 +39,25 @@ export default function AdminDashboard() {
   const [todayAppointments, setTodayAppointments] = useState<AppointmentRow[]>([]);
   const [tomorrowAppointments, setTomorrowAppointments] = useState<AppointmentRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [daysBefore, setDaysBefore] = useState(15);
-  const [daysAfter, setDaysAfter] = useState(15);
+
+  // Applied values (actually used for data fetching)
+  const [appliedDaysBefore, setAppliedDaysBefore] = useState(15);
+  const [appliedDaysAfter, setAppliedDaysAfter] = useState(15);
+
+  // Temporary values (for slider UI only)
+  const [tempDaysBefore, setTempDaysBefore] = useState(15);
+  const [tempDaysAfter, setTempDaysAfter] = useState(15);
 
   useEffect(() => {
     loadDashboardData();
-  }, [daysBefore, daysAfter]);
+  }, [appliedDaysBefore, appliedDaysAfter]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const [statsData, chartData, todayData, tomorrowData] = await Promise.all([
         getDashboardStats(),
-        getAppointmentsByDate(daysBefore, daysAfter),
+        getAppointmentsByDate(appliedDaysBefore, appliedDaysAfter),
         getTodayAppointments(),
         getTomorrowAppointments(),
       ]);
@@ -65,6 +71,18 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleApplyRange = () => {
+    setAppliedDaysBefore(tempDaysBefore);
+    setAppliedDaysAfter(tempDaysAfter);
+  };
+
+  const handleResetRange = () => {
+    setTempDaysBefore(15);
+    setTempDaysAfter(15);
+    setAppliedDaysBefore(15);
+    setAppliedDaysAfter(15);
   };
 
   const handleLogout = () => {
@@ -178,17 +196,17 @@ export default function AdminDashboard() {
             </h2>
 
             {/* Time Range Controls */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600 whitespace-nowrap">
-                  {daysBefore} ngày trước
+                  {tempDaysBefore} ngày trước
                 </label>
                 <input
                   type="range"
                   min="7"
                   max="60"
-                  value={daysBefore}
-                  onChange={(e) => setDaysBefore(Number(e.target.value))}
+                  value={tempDaysBefore}
+                  onChange={(e) => setTempDaysBefore(Number(e.target.value))}
                   className="w-24 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
@@ -202,21 +220,25 @@ export default function AdminDashboard() {
                   type="range"
                   min="7"
                   max="60"
-                  value={daysAfter}
-                  onChange={(e) => setDaysAfter(Number(e.target.value))}
+                  value={tempDaysAfter}
+                  onChange={(e) => setTempDaysAfter(Number(e.target.value))}
                   className="w-24 h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-600"
                 />
                 <label className="text-sm text-gray-600 whitespace-nowrap">
-                  {daysAfter} ngày sau
+                  {tempDaysAfter} ngày sau
                 </label>
               </div>
 
               <button
-                onClick={() => {
-                  setDaysBefore(15);
-                  setDaysAfter(15);
-                }}
-                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                onClick={handleApplyRange}
+                className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold shadow-sm"
+              >
+                Áp dụng
+              </button>
+
+              <button
+                onClick={handleResetRange}
+                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                 title="Reset về mặc định"
               >
                 Reset
@@ -225,7 +247,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="text-sm text-gray-600 mb-4">
-            Hiển thị từ {format(new Date(new Date().setDate(new Date().getDate() - daysBefore)), 'dd/MM/yyyy', { locale: vi })} đến {format(new Date(new Date().setDate(new Date().getDate() + daysAfter)), 'dd/MM/yyyy', { locale: vi })} ({daysBefore + daysAfter + 1} ngày)
+            Hiển thị từ {format(new Date(new Date().setDate(new Date().getDate() - appliedDaysBefore)), 'dd/MM/yyyy', { locale: vi })} đến {format(new Date(new Date().setDate(new Date().getDate() + appliedDaysAfter)), 'dd/MM/yyyy', { locale: vi })} ({appliedDaysBefore + appliedDaysAfter + 1} ngày)
           </div>
 
           <ResponsiveContainer width="100%" height={300}>
