@@ -49,9 +49,33 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             </div>
           </div>
 
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Đặt Lịch Thành Công!</h2>
-          <p className="text-gray-600 mb-2 text-base">Lịch hẹn của bạn đã được xác nhận. Vui lòng kiểm tra lại thông tin dưới đây.</p>
-          <p className="text-indigo-600 font-semibold italic mb-6 text-sm">✨ Vì một thế hệ trẻ khỏe mạnh và toàn diện ✨</p>
+          <h2 className="text-3xl font-bold text-gray-800 mb-3">Đặt Lịch Thành Công!</h2>
+
+          {/* Beautiful Thank You Section */}
+          <div className="relative mb-6 py-6 px-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 shadow-lg">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="bg-white rounded-full p-2 shadow-md">
+                <svg className="w-8 h-8 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                Phòng khám bác sĩ Cẩm Vân
+              </p>
+              <p className="text-xl font-semibold text-gray-800 mb-1">
+                xin chân thành cảm ơn!
+              </p>
+              <p className="text-sm text-gray-600 italic">
+                ✨ Vì một thế hệ trẻ khỏe mạnh và toàn diện ✨
+              </p>
+            </div>
+          </div>
+
+          <p className="text-gray-600 mb-6 text-sm font-medium">
+            Thông tin lịch hẹn của bạn:
+          </p>
 
           <div className="text-left bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl border-2 border-gray-200 space-y-4 shadow-inner">
             <div className="flex items-start gap-3">
