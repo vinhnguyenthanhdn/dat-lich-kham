@@ -14,7 +14,10 @@
       "Bash(.env.local)",
       "Bash(lib/supabase.ts)",
       "Bash(npm run dev:dev:*)",
-      "Bash(.env.example)"
+      "Bash(.env.example)",
+      "Bash(gh api:*)",
+      "Bash(echo:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

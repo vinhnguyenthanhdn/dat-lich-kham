@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { BookingForm } from './components/BookingForm';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import type { Appointment } from './types';
-import { insertAppointment, type AppointmentRow } from './lib/supabase';
+import { insertAppointment, type AppointmentRow } from './src/lib/supabase';
 
 function App() {
   const [bookedSlots, setBookedSlots] = useState<Date[]>([]);
