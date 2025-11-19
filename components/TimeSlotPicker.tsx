@@ -19,7 +19,7 @@ const formatTime = (hours: number): string => {
 export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateString, bookedSlots, onSelectSlot, selectedSlot }) => {
   const availableSlots = useMemo(() => {
     if (!selectedDateString) return [];
-    
+
     const date = new Date(selectedDateString);
     // Adjust for timezone offset to prevent day-off errors
     const localDate = new Date(date.valueOf() + date.getTimezoneOffset() * 60 * 1000);
@@ -27,6 +27,11 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateStri
 
     const scheduleForDay = DAILY_SCHEDULE[dayOfWeek];
     if (!scheduleForDay) return [];
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const selectedDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate());
+    const isToday = selectedDay.getTime() === today.getTime();
 
     const slots: Date[] = [];
     scheduleForDay.forEach(([startHour, endHour]) => {
@@ -36,6 +41,13 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateStri
         const hours = Math.floor(currentHour);
         const minutes = Math.round((currentHour - hours) * 60);
         slotDate.setHours(hours, minutes, 0, 0);
+
+        // Filter out past time slots if today
+        if (isToday && slotDate.getTime() <= now.getTime()) {
+          currentHour += APPOINTMENT_DURATION_MINUTES / 60;
+          continue;
+        }
+
         slots.push(slotDate);
         currentHour += APPOINTMENT_DURATION_MINUTES / 60;
       }

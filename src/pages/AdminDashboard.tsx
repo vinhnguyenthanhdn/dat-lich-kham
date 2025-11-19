@@ -17,6 +17,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
 } from 'recharts';
 
 interface DashboardStats {
@@ -239,12 +240,39 @@ export default function AdminDashboard() {
                 labelFormatter={(value) => formatDate(value as string)}
                 formatter={(value) => [`${value} lịch hẹn`, 'Số lượng']}
               />
+              {/* Highlight today with a vertical line */}
+              <ReferenceLine
+                x={new Date().toISOString().split('T')[0]}
+                stroke="#10b981"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                label={{
+                  value: 'Hôm nay',
+                  position: 'top',
+                  fill: '#10b981',
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                }}
+              />
               <Line
                 type="monotone"
                 dataKey="count"
                 stroke="#3b82f6"
                 strokeWidth={2}
-                dot={{ r: 4 }}
+                dot={(props) => {
+                  const { cx, cy, payload } = props;
+                  const isToday = payload.date === new Date().toISOString().split('T')[0];
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={isToday ? 6 : 4}
+                      fill={isToday ? '#10b981' : '#3b82f6'}
+                      stroke={isToday ? '#059669' : '#3b82f6'}
+                      strokeWidth={isToday ? 2 : 1}
+                    />
+                  );
+                }}
                 activeDot={{ r: 6 }}
               />
             </LineChart>

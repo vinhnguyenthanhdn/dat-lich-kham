@@ -41,8 +41,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
     if (!patient.name || !patient.dob || !patient.parentName || !patient.phone || !selectedSlot) {
       setError('Vui lòng điền đầy đủ thông tin bắt buộc và chọn một khung giờ.');
+      return;
+    }
+
+    // Validate past date/time
+    const now = new Date();
+    if (selectedSlot.getTime() < now.getTime()) {
+      setError('Không thể đặt lịch cho thời gian trong quá khứ. Vui lòng chọn ngày và giờ khác.');
+      setSelectedSlot(null);
       return;
     }
 
