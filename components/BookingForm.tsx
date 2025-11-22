@@ -102,8 +102,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
           </div>
 
           <div className="group">
-            <label htmlFor="dob" className="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh <span className="text-red-500">*</span></label>
-            <input type="date" id="dob" name="dob" value={patient.dob} onChange={handlePatientChange} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300"/>
+            <label htmlFor="dob" className="block text-sm font-semibold text-gray-700 mb-2">
+              Ngày sinh <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-500 font-normal ml-2">(dd/mm/yyyy)</span>
+            </label>
+            <input
+              type="date"
+              id="dob"
+              name="dob"
+              value={patient.dob}
+              onChange={handlePatientChange}
+              required
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300"
+            />
           </div>
 
           <div className="group">
@@ -149,9 +160,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
           </div>
 
           <div className="relative group">
-            <label htmlFor="appointmentDate" className="block text-sm font-semibold text-gray-700 mb-2">Chọn ngày khám <span className="text-red-500">*</span></label>
+            <label htmlFor="appointmentDate" className="block text-sm font-semibold text-gray-700 mb-2">
+              Chọn ngày khám <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-500 font-normal ml-2">(dd/mm/yyyy)</span>
+            </label>
             <div className="relative">
-              <input type="date" id="appointmentDate" name="appointmentDate" value={selectedDate} onChange={(e) => {setSelectedDate(e.target.value); setSelectedSlot(null);}} min={today} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10 transition-all duration-200 group-hover:border-gray-300"/>
+              <input
+                type="date"
+                id="appointmentDate"
+                name="appointmentDate"
+                value={selectedDate}
+                onChange={(e) => {setSelectedDate(e.target.value); setSelectedSlot(null);}}
+                min={today}
+                required
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10 transition-all duration-200 group-hover:border-gray-300"
+              />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <CalendarIcon className="h-5 w-5 text-gray-400" />
               </div>
