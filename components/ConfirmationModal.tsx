@@ -62,12 +62,12 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             </div>
             <div className="mt-4">
               <p className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                Phòng khám bác sĩ Cẩm Vân
+                Phòng khám bác sĩ <span className="whitespace-nowrap">Cẩm Vân</span>
               </p>
               <p className="text-xl font-semibold text-gray-800 mb-1">
-                xin chân thành cảm ơn!
+                Xin chân thành cảm ơn!
               </p>
-              <p className="text-sm text-gray-600 italic">
+              <p className="text-sm text-gray-400 italic">
                 ✨ Vì một thế hệ trẻ khỏe mạnh và toàn diện ✨
               </p>
             </div>
