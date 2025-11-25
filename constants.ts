@@ -7,6 +7,12 @@ export const REASONS_FOR_VISIT: string[] = [
   'Sa tạng chậu',
   'Đau khớp',
   'Vật lý trị liệu hô hấp (lấy đờm)',
+  'Vẹo cổ',
+  'Gãy xương',
+  'Liệt dây thần kinh',
+  'Bại não',
+  'Liệt nửa người',
+  'Loạn sản khớp háng',
   'Vấn đề khác',
 ];
 

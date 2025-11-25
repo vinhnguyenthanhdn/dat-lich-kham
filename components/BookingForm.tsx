@@ -43,7 +43,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
     e.preventDefault();
 
     // Validate required fields
-    if (!patient.name || !patient.dob || !patient.parentName || !patient.phone || !selectedSlot) {
+    if (!patient.name || !patient.dob || !patient.phone || !selectedSlot) {
       setError('Vui lòng điền đầy đủ thông tin bắt buộc và chọn một khung giờ.');
       return;
     }
@@ -118,8 +118,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ onBookAppointment, boo
           </div>
 
           <div className="group">
-            <label htmlFor="parentName" className="block text-sm font-semibold text-gray-700 mb-2">Tên bố/mẹ <span className="text-red-500">*</span></label>
-            <input type="text" id="parentName" name="parentName" value={patient.parentName} onChange={handlePatientChange} required className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300" placeholder="Nhập tên bố hoặc mẹ"/>
+            <label htmlFor="parentName" className="block text-sm font-semibold text-gray-700 mb-2">Tên bố/mẹ</label>
+            <input type="text" id="parentName" name="parentName" value={patient.parentName} onChange={handlePatientChange} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 group-hover:border-gray-300" placeholder="Nhập tên bố hoặc mẹ (tùy chọn)"/>
           </div>
 
           <div className="group">
