@@ -20,6 +20,7 @@ export default function AdminAppointments() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState<string>('');
+  const [selectedPatient, setSelectedPatient] = useState<AppointmentRow | null>(null);
   const pageSize = 20;
 
   useEffect(() => {
@@ -309,12 +310,20 @@ export default function AdminAppointments() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => handleDelete(apt.id!)}
-                          className="text-red-600 hover:text-red-900 font-medium"
-                        >
-                          Xóa
-                        </button>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setSelectedPatient(apt)}
+                            className="text-blue-600 hover:text-blue-900 font-medium"
+                          >
+                            Chi tiết
+                          </button>
+                          <button
+                            onClick={() => handleDelete(apt.id!)}
+                            className="text-red-600 hover:text-red-900 font-medium"
+                          >
+                            Xóa
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -349,6 +358,137 @@ export default function AdminAppointments() {
           </div>
         )}
       </div>
+
+      {/* Patient Detail Modal */}
+      {selectedPatient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-6 rounded-t-2xl">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Thông tin chi tiết bệnh nhân</h2>
+                  <p className="text-blue-100 text-sm">ID: {selectedPatient.id}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedPatient(null)}
+                  className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              {/* Patient Information */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Thông tin bệnh nhân
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Tên bệnh nhân</label>
+                    <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Ngày sinh</label>
+                    <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_dob}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Tên phụ huynh</label>
+                    <p className="text-base text-gray-900 mt-1">{selectedPatient.parent_name || <span className="text-gray-400 italic">Không có</span>}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Số điện thoại</label>
+                    <p className="text-base text-gray-900 mt-1">
+                      <a href={`tel:${selectedPatient.patient_phone}`} className="text-blue-600 hover:underline">
+                        {selectedPatient.patient_phone}
+                      </a>
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-semibold text-gray-600">Địa chỉ</label>
+                    <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_address || <span className="text-gray-400 italic">Không có</span>}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Information */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Thông tin lịch hẹn
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Ngày giờ khám</label>
+                    <p className="text-base text-gray-900 mt-1 font-semibold">
+                      {formatDateTime(selectedPatient.appointment_date)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Trạng thái</label>
+                    <p className="mt-1">
+                      <span className={`inline-block text-sm rounded-full px-4 py-1 font-semibold ${
+                        selectedPatient.status === 'confirmed'
+                          ? 'bg-green-100 text-green-800'
+                          : selectedPatient.status === 'cancelled'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {selectedPatient.status === 'confirmed' ? 'Đã xác nhận' : selectedPatient.status === 'cancelled' ? 'Đã hủy' : 'Chờ xác nhận'}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-semibold text-gray-600">Lý do khám</label>
+                    <p className="text-base text-gray-900 mt-1">{selectedPatient.reason}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-semibold text-gray-600">Ngày đăng ký</label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {selectedPatient.created_at ? formatDateTime(selectedPatient.created_at) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Doctor Notes */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Ghi chú của bác sĩ
+                </h3>
+                <div className="bg-white rounded-lg p-4 min-h-[100px]">
+                  {selectedPatient.note ? (
+                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedPatient.note}</p>
+                  ) : (
+                    <p className="text-gray-400 italic">Chưa có ghi chú</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  onClick={() => setSelectedPatient(null)}
+                  className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
