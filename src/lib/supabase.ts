@@ -263,6 +263,26 @@ export async function updateAppointmentNote(id: string, note: string) {
   return data;
 }
 
+// Update appointment patient info
+export async function updateAppointmentInfo(
+  id: string,
+  info: Partial<Pick<AppointmentRow, 'patient_name' | 'patient_dob' | 'parent_name' | 'patient_address' | 'patient_phone'>>
+) {
+  const { data, error } = await supabase
+    .from('appointments')
+    .update(info)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating appointment info:', error);
+    throw error;
+  }
+
+  return data;
+}
+
 // Delete appointment
 export async function deleteAppointment(id: string) {
   const { error } = await supabase

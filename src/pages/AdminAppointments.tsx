@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getAllAppointments,
   updateAppointmentStatus,
+  updateAppointmentNote,
+  updateAppointmentInfo,
   deleteAppointment,
   type AppointmentRow,
 } from '../lib/supabase';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 
 export default function AdminAppointments() {
   const navigate = useNavigate();
@@ -18,6 +21,16 @@ export default function AdminAppointments() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [selectedPatient, setSelectedPatient] = useState<AppointmentRow | null>(null);
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [editNoteText, setEditNoteText] = useState('');
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [editPatientInfo, setEditPatientInfo] = useState({
+    patient_name: '',
+    patient_dob: '',
+    parent_name: '',
+    patient_address: '',
+    patient_phone: '',
+  });
   const pageSize = 20;
 
   useEffect(() => {
@@ -67,6 +80,152 @@ export default function AdminAppointments() {
     }
   };
 
+  const handleEditNoteClick = () => {
+    setEditNoteText(selectedPatient?.note || '');
+    setIsEditingNote(true);
+  };
+
+  const handleSaveNote = async () => {
+    if (!selectedPatient?.id) return;
+
+    try {
+      await updateAppointmentNote(selectedPatient.id, editNoteText);
+      // Update the selectedPatient with new note
+      setSelectedPatient({ ...selectedPatient, note: editNoteText });
+      setIsEditingNote(false);
+      // Reload to update the list
+      loadAppointments();
+    } catch (error) {
+      console.error('Error saving note:', error);
+      alert('Có lỗi khi lưu ghi chú');
+    }
+  };
+
+  const handleCancelEditNote = () => {
+    setIsEditingNote(false);
+    setEditNoteText('');
+  };
+
+  const handleEditInfoClick = () => {
+    if (selectedPatient) {
+      setEditPatientInfo({
+        patient_name: selectedPatient.patient_name,
+        patient_dob: selectedPatient.patient_dob,
+        parent_name: selectedPatient.parent_name || '',
+        patient_address: selectedPatient.patient_address || '',
+        patient_phone: selectedPatient.patient_phone,
+      });
+      setIsEditingInfo(true);
+    }
+  };
+
+  const handleSavePatientInfo = async () => {
+    if (!selectedPatient?.id) return;
+
+    try {
+      await updateAppointmentInfo(selectedPatient.id, editPatientInfo);
+      // Update selectedPatient with new info
+      setSelectedPatient({ ...selectedPatient, ...editPatientInfo });
+      setIsEditingInfo(false);
+      // Reload to update the list
+      loadAppointments();
+    } catch (error) {
+      console.error('Error saving patient info:', error);
+      alert('Có lỗi khi lưu thông tin bệnh nhân');
+    }
+  };
+
+  const handleCancelEditInfo = () => {
+    setIsEditingInfo(false);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPatient(null);
+    setIsEditingNote(false);
+    setEditNoteText('');
+    setIsEditingInfo(false);
+  };
+
+  const handleExportExcel = () => {
+    // Prepare data for export
+    const exportData = appointments.map((apt) => ({
+      'ID': apt.id,
+      'Tên bệnh nhân': apt.patient_name,
+      'Ngày sinh': apt.patient_dob,
+      'Tên phụ huynh': apt.parent_name || '',
+      'Số điện thoại': apt.patient_phone,
+      'Địa chỉ': apt.patient_address || '',
+      'Lý do khám': apt.reason,
+      'Ngày giờ khám': formatDateTime(apt.appointment_date),
+      'Trạng thái': apt.status === 'confirmed' ? 'Đã xác nhận' : apt.status === 'cancelled' ? 'Đã hủy' : 'Chờ xác nhận',
+      'Ghi chú': apt.note || '',
+      'Ngày đăng ký': apt.created_at ? formatDateTime(apt.created_at) : '',
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 25 }, // ID
+      { wch: 20 }, // Tên bệnh nhân
+      { wch: 12 }, // Ngày sinh
+      { wch: 20 }, // Tên phụ huynh
+      { wch: 15 }, // Số điện thoại
+      { wch: 30 }, // Địa chỉ
+      { wch: 25 }, // Lý do khám
+      { wch: 18 }, // Ngày giờ khám
+      { wch: 15 }, // Trạng thái
+      { wch: 40 }, // Ghi chú
+      { wch: 18 }, // Ngày đăng ký
+    ];
+
+    // Create workbook and add worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách bệnh nhân');
+
+    // Generate filename with current date
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const filename = `danh-sach-benh-nhan-${today}.xlsx`;
+
+    // Save file
+    XLSX.writeFile(wb, filename);
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        console.log('Imported data:', jsonData);
+        alert(`Đã đọc ${jsonData.length} bản ghi từ file Excel. Tính năng import sẽ được hoàn thiện sau.`);
+
+        // TODO: Implement actual import to database
+        // This would require validation and calling insertAppointment for each row
+
+      } catch (error) {
+        console.error('Error importing Excel:', error);
+        alert('Có lỗi khi đọc file Excel. Vui lòng kiểm tra định dạng file.');
+      }
+    };
+    reader.readAsBinaryString(file);
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('admin_auth');
     navigate('/admin/login');
@@ -106,6 +265,35 @@ export default function AdminAppointments() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Import/Export Buttons */}
+        <div className="mb-4 flex gap-3 justify-end">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleImportExcel}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Import Excel
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            Export Excel
+          </button>
+        </div>
+
         {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -226,24 +414,20 @@ export default function AdminAppointments() {
                           <option value="cancelled">Hủy</option>
                         </select>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
+                      <td className="px-6 py-4">
+                        <div className="max-w-xs">
                           {apt.note ? (
-                            <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
-                              </svg>
-                              Có ghi chú
-                            </span>
+                            <div className="text-sm text-gray-700">
+                              {apt.note.length > 100 ? (
+                                <p className="line-clamp-2" title={apt.note}>
+                                  {apt.note.substring(0, 100)}...
+                                </p>
+                              ) : (
+                                <p>{apt.note}</p>
+                              )}
+                            </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9 4a1 1 0 102 0 1 1 0 00-2 0zm-3 1a1 1 0 100-2 1 1 0 000 2zm-4 1a1 1 0 11-2 0 1 1 0 012 0zm5 1a1 1 0 100-2 1 1 0 000 2zm3 1a1 1 0 11-2 0 1 1 0 012 0z" clipRule="evenodd"/>
-                              </svg>
-                              Chưa có
-                            </span>
+                            <span className="text-sm text-gray-400 italic">Chưa có ghi chú</span>
                           )}
                         </div>
                       </td>
@@ -308,7 +492,7 @@ export default function AdminAppointments() {
                   <p className="text-blue-100 text-sm">ID: {selectedPatient.id}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedPatient(null)}
+                  onClick={handleCloseModal}
                   className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,38 +505,118 @@ export default function AdminAppointments() {
             <div className="p-8 space-y-6">
               {/* Patient Information */}
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Thông tin bệnh nhân
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">Tên bệnh nhân</label>
-                    <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">Ngày sinh</label>
-                    <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_dob}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">Tên phụ huynh</label>
-                    <p className="text-base text-gray-900 mt-1">{selectedPatient.parent_name || <span className="text-gray-400 italic">Không có</span>}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">Số điện thoại</label>
-                    <p className="text-base text-gray-900 mt-1">
-                      <a href={`tel:${selectedPatient.patient_phone}`} className="text-blue-600 hover:underline">
-                        {selectedPatient.patient_phone}
-                      </a>
-                    </p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-semibold text-gray-600">Địa chỉ</label>
-                    <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_address || <span className="text-gray-400 italic">Không có</span>}</p>
-                  </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Thông tin bệnh nhân
+                  </h3>
+                  {!isEditingInfo && (
+                    <button
+                      onClick={handleEditInfoClick}
+                      className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Chỉnh sửa
+                    </button>
+                  )}
                 </div>
+                {isEditingInfo ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-semibold text-gray-600 block mb-1">Tên bệnh nhân</label>
+                        <input
+                          type="text"
+                          value={editPatientInfo.patient_name}
+                          onChange={(e) => setEditPatientInfo({ ...editPatientInfo, patient_name: e.target.value })}
+                          className="w-full border-2 border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-gray-600 block mb-1">Ngày sinh (dd/mm/yyyy)</label>
+                        <input
+                          type="text"
+                          value={editPatientInfo.patient_dob}
+                          onChange={(e) => setEditPatientInfo({ ...editPatientInfo, patient_dob: e.target.value })}
+                          className="w-full border-2 border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="dd/mm/yyyy"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-gray-600 block mb-1">Tên phụ huynh</label>
+                        <input
+                          type="text"
+                          value={editPatientInfo.parent_name}
+                          onChange={(e) => setEditPatientInfo({ ...editPatientInfo, parent_name: e.target.value })}
+                          className="w-full border-2 border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-gray-600 block mb-1">Số điện thoại</label>
+                        <input
+                          type="text"
+                          value={editPatientInfo.patient_phone}
+                          onChange={(e) => setEditPatientInfo({ ...editPatientInfo, patient_phone: e.target.value })}
+                          className="w-full border-2 border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-semibold text-gray-600 block mb-1">Địa chỉ</label>
+                        <input
+                          type="text"
+                          value={editPatientInfo.patient_address}
+                          onChange={(e) => setEditPatientInfo({ ...editPatientInfo, patient_address: e.target.value })}
+                          className="w-full border-2 border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 justify-end pt-2">
+                      <button
+                        onClick={handleCancelEditInfo}
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        onClick={handleSavePatientInfo}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Lưu thông tin
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Tên bệnh nhân</label>
+                      <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_name}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Ngày sinh</label>
+                      <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_dob}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Tên phụ huynh</label>
+                      <p className="text-base text-gray-900 mt-1">{selectedPatient.parent_name || <span className="text-gray-400 italic">Không có</span>}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Số điện thoại</label>
+                      <p className="text-base text-gray-900 mt-1">
+                        <a href={`tel:${selectedPatient.patient_phone}`} className="text-blue-600 hover:underline">
+                          {selectedPatient.patient_phone}
+                        </a>
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-semibold text-gray-600">Địa chỉ</label>
+                      <p className="text-base text-gray-900 mt-1">{selectedPatient.patient_address || <span className="text-gray-400 italic">Không có</span>}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Appointment Information */}
@@ -399,25 +663,64 @@ export default function AdminAppointments() {
 
               {/* Doctor Notes */}
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Ghi chú của bác sĩ
-                </h3>
-                <div className="bg-white rounded-lg p-4 min-h-[100px]">
-                  {selectedPatient.note ? (
-                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedPatient.note}</p>
-                  ) : (
-                    <p className="text-gray-400 italic">Chưa có ghi chú</p>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Ghi chú của bác sĩ
+                  </h3>
+                  {!isEditingNote && (
+                    <button
+                      onClick={handleEditNoteClick}
+                      className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      {selectedPatient.note ? 'Chỉnh sửa' : 'Thêm ghi chú'}
+                    </button>
                   )}
                 </div>
+                {isEditingNote ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={editNoteText}
+                      onChange={(e) => setEditNoteText(e.target.value)}
+                      className="w-full border-2 border-green-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                      rows={6}
+                      placeholder="Nhập ghi chú của bác sĩ..."
+                    />
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        onClick={handleCancelEditNote}
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        onClick={handleSaveNote}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Lưu ghi chú
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg p-4 min-h-[100px]">
+                    {selectedPatient.note ? (
+                      <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedPatient.note}</p>
+                    ) : (
+                      <p className="text-gray-400 italic">Chưa có ghi chú</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button
-                  onClick={() => setSelectedPatient(null)}
+                  onClick={handleCloseModal}
                   className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
                 >
                   Đóng
