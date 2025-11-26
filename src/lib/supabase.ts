@@ -22,6 +22,7 @@ export interface AppointmentRow {
   appointment_date: string;
   created_at?: string;
   status?: 'pending' | 'confirmed' | 'cancelled';
+  note?: string | null;
 }
 
 // Function to insert appointment
@@ -239,6 +240,23 @@ export async function updateAppointmentStatus(
 
   if (error) {
     console.error('Error updating appointment status:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Update appointment note
+export async function updateAppointmentNote(id: string, note: string) {
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({ note })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating appointment note:', error);
     throw error;
   }
 

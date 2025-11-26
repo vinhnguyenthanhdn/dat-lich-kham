@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   getAllAppointments,
   updateAppointmentStatus,
+  updateAppointmentNote,
   deleteAppointment,
   type AppointmentRow,
 } from '../lib/supabase';
@@ -17,6 +18,8 @@ export default function AdminAppointments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState<string>('');
   const pageSize = 20;
 
   useEffect(() => {
@@ -64,6 +67,28 @@ export default function AdminAppointments() {
       console.error('Error deleting appointment:', error);
       alert('Có lỗi khi xóa lịch hẹn');
     }
+  };
+
+  const handleEditNote = (apt: AppointmentRow) => {
+    setEditingNoteId(apt.id || null);
+    setNoteText(apt.note || '');
+  };
+
+  const handleSaveNote = async (id: string) => {
+    try {
+      await updateAppointmentNote(id, noteText);
+      setEditingNoteId(null);
+      setNoteText('');
+      loadAppointments();
+    } catch (error) {
+      console.error('Error saving note:', error);
+      alert('Có lỗi khi lưu ghi chú');
+    }
+  };
+
+  const handleCancelEditNote = () => {
+    setEditingNoteId(null);
+    setNoteText('');
   };
 
   const handleLogout = () => {
@@ -190,6 +215,9 @@ export default function AdminAppointments() {
                       Trạng thái
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ghi chú
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Hành động
                     </th>
                   </tr>
@@ -236,6 +264,49 @@ export default function AdminAppointments() {
                           <option value="confirmed">Xác nhận</option>
                           <option value="cancelled">Hủy</option>
                         </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingNoteId === apt.id ? (
+                          <div className="flex flex-col gap-2 min-w-[200px]">
+                            <textarea
+                              value={noteText}
+                              onChange={(e) => setNoteText(e.target.value)}
+                              className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                              rows={3}
+                              placeholder="Nhập ghi chú của bác sĩ..."
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleSaveNote(apt.id!)}
+                                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium"
+                              >
+                                Lưu
+                              </button>
+                              <button
+                                onClick={handleCancelEditNote}
+                                className="text-xs bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded-lg font-medium"
+                              >
+                                Hủy
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start gap-2 min-w-[200px]">
+                            <div className="text-sm text-gray-700 flex-1">
+                              {apt.note ? (
+                                <p className="whitespace-pre-wrap">{apt.note}</p>
+                              ) : (
+                                <span className="text-gray-400 italic">Chưa có ghi chú</span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleEditNote(apt)}
+                              className="text-blue-600 hover:text-blue-900 text-xs font-medium flex-shrink-0"
+                            >
+                              {apt.note ? 'Sửa' : 'Thêm'}
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
