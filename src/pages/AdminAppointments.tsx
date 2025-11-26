@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   getAllAppointments,
   updateAppointmentStatus,
-  updateAppointmentNote,
   deleteAppointment,
   type AppointmentRow,
 } from '../lib/supabase';
@@ -18,8 +17,6 @@ export default function AdminAppointments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [noteText, setNoteText] = useState<string>('');
   const [selectedPatient, setSelectedPatient] = useState<AppointmentRow | null>(null);
   const pageSize = 20;
 
@@ -68,28 +65,6 @@ export default function AdminAppointments() {
       console.error('Error deleting appointment:', error);
       alert('Có lỗi khi xóa lịch hẹn');
     }
-  };
-
-  const handleEditNote = (apt: AppointmentRow) => {
-    setEditingNoteId(apt.id || null);
-    setNoteText(apt.note || '');
-  };
-
-  const handleSaveNote = async (id: string) => {
-    try {
-      await updateAppointmentNote(id, noteText);
-      setEditingNoteId(null);
-      setNoteText('');
-      loadAppointments();
-    } catch (error) {
-      console.error('Error saving note:', error);
-      alert('Có lỗi khi lưu ghi chú');
-    }
-  };
-
-  const handleCancelEditNote = () => {
-    setEditingNoteId(null);
-    setNoteText('');
   };
 
   const handleLogout = () => {
@@ -198,12 +173,6 @@ export default function AdminAppointments() {
                       Bệnh nhân
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phụ huynh
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Liên hệ
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Ngày sinh
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -228,15 +197,6 @@ export default function AdminAppointments() {
                     <tr key={apt.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{apt.patient_name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{apt.parent_name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{apt.patient_phone}</div>
-                        {apt.patient_address && (
-                          <div className="text-xs text-gray-500">{apt.patient_address}</div>
-                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{apt.patient_dob}</div>
@@ -266,48 +226,26 @@ export default function AdminAppointments() {
                           <option value="cancelled">Hủy</option>
                         </select>
                       </td>
-                      <td className="px-6 py-4">
-                        {editingNoteId === apt.id ? (
-                          <div className="flex flex-col gap-2 min-w-[200px]">
-                            <textarea
-                              value={noteText}
-                              onChange={(e) => setNoteText(e.target.value)}
-                              className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                              rows={3}
-                              placeholder="Nhập ghi chú của bác sĩ..."
-                            />
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleSaveNote(apt.id!)}
-                                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-medium"
-                              >
-                                Lưu
-                              </button>
-                              <button
-                                onClick={handleCancelEditNote}
-                                className="text-xs bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded-lg font-medium"
-                              >
-                                Hủy
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-start gap-2 min-w-[200px]">
-                            <div className="text-sm text-gray-700 flex-1">
-                              {apt.note ? (
-                                <p className="whitespace-pre-wrap">{apt.note}</p>
-                              ) : (
-                                <span className="text-gray-400 italic">Chưa có ghi chú</span>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => handleEditNote(apt)}
-                              className="text-blue-600 hover:text-blue-900 text-xs font-medium flex-shrink-0"
-                            >
-                              {apt.note ? 'Sửa' : 'Thêm'}
-                            </button>
-                          </div>
-                        )}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {apt.note ? (
+                            <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+                              </svg>
+                              Có ghi chú
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9 4a1 1 0 102 0 1 1 0 00-2 0zm-3 1a1 1 0 100-2 1 1 0 000 2zm-4 1a1 1 0 11-2 0 1 1 0 012 0zm5 1a1 1 0 100-2 1 1 0 000 2zm3 1a1 1 0 11-2 0 1 1 0 012 0z" clipRule="evenodd"/>
+                              </svg>
+                              Chưa có
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-3">
