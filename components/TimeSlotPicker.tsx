@@ -23,12 +23,15 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateStri
   useEffect(() => {
     // Fetch blocked slots for the selected date
     if (selectedDateString) {
-      const date = new Date(selectedDateString);
-      const localDate = new Date(date.valueOf() + date.getTimezoneOffset() * 60 * 1000);
+      console.log('[TimeSlotPicker] selectedDateString:', selectedDateString);
 
-      // Fetch blocked slots for this specific date
-      getBlockedSlotsInRange(localDate, localDate)
-        .then(slots => setBlockedSlots(slots))
+      // Query blocked slots using the date string directly (YYYY-MM-DD format)
+      // Don't apply timezone offset here to avoid date shifting
+      getBlockedSlotsInRange(selectedDateString, selectedDateString)
+        .then(slots => {
+          console.log('[TimeSlotPicker] Blocked slots fetched:', slots);
+          setBlockedSlots(slots);
+        })
         .catch(err => console.error('Error fetching blocked slots:', err));
     }
   }, [selectedDateString]);
@@ -73,19 +76,29 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateStri
     const bookedTimes = new Set(bookedSlots.map(d => d.getTime()));
 
     // Filter out blocked slots
+    console.log('[TimeSlotPicker] blockedSlots in useMemo:', blockedSlots);
     const blockedTimes = new Set(
       blockedSlots.map(bs => {
+        console.log('[TimeSlotPicker] Processing blocked slot:', bs);
         const [hours, minutes] = bs.blocked_time.split(':').map(Number);
         const blockedDate = new Date(localDate);
         blockedDate.setHours(hours, minutes, 0, 0);
+        console.log('[TimeSlotPicker] Blocked time created:', blockedDate.toISOString(), 'getTime:', blockedDate.getTime());
         return blockedDate.getTime();
       })
     );
+    console.log('[TimeSlotPicker] blockedTimes Set:', Array.from(blockedTimes));
 
-    return slots.filter(slot => {
+    const filteredSlots = slots.filter(slot => {
       const slotTime = slot.getTime();
-      return !bookedTimes.has(slotTime) && !blockedTimes.has(slotTime);
+      const isBooked = bookedTimes.has(slotTime);
+      const isBlocked = blockedTimes.has(slotTime);
+      console.log('[TimeSlotPicker] Slot:', slot.toISOString(), 'getTime:', slotTime, 'isBooked:', isBooked, 'isBlocked:', isBlocked);
+      return !isBooked && !isBlocked;
     });
+
+    console.log('[TimeSlotPicker] Total slots:', slots.length, 'Filtered slots:', filteredSlots.length);
+    return filteredSlots;
   }, [selectedDateString, bookedSlots, blockedSlots]);
   
   if (!selectedDateString) {

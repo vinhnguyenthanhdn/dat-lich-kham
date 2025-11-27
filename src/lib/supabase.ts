@@ -325,12 +325,17 @@ export async function getAllBlockedSlots() {
 }
 
 // Get blocked slots for a specific date range
-export async function getBlockedSlotsInRange(startDate: Date, endDate: Date) {
+export async function getBlockedSlotsInRange(startDate: string | Date, endDate: string | Date) {
+  // Handle both string (YYYY-MM-DD) and Date inputs
+  const startDateStr = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
+  const endDateStr = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
+  console.log('[getBlockedSlotsInRange] Query params:', { startDateStr, endDateStr });
+
   const { data, error } = await supabase
     .from('blocked_slots')
     .select('*')
-    .gte('blocked_date', startDate.toISOString().split('T')[0])
-    .lte('blocked_date', endDate.toISOString().split('T')[0])
+    .gte('blocked_date', startDateStr)
+    .lte('blocked_date', endDateStr)
     .order('blocked_date', { ascending: true })
     .order('blocked_time', { ascending: true });
 
@@ -339,6 +344,7 @@ export async function getBlockedSlotsInRange(startDate: Date, endDate: Date) {
     return [];
   }
 
+  console.log('[getBlockedSlotsInRange] Data returned:', data);
   return data || [];
 }
 
