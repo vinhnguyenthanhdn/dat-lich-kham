@@ -1,7 +1,8 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DAILY_SCHEDULE, APPOINTMENT_DURATION_MINUTES } from '../constants';
 import { ClockIcon } from './icons/ClockIcon';
+import { getBlockedSlotsInRange, type BlockedSlot } from '../src/lib/supabase';
 
 interface TimeSlotPickerProps {
   selectedDateString: string;
@@ -17,6 +18,21 @@ const formatTime = (hours: number): string => {
 };
 
 export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateString, bookedSlots, onSelectSlot, selectedSlot }) => {
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
+
+  useEffect(() => {
+    // Fetch blocked slots for the selected date
+    if (selectedDateString) {
+      const date = new Date(selectedDateString);
+      const localDate = new Date(date.valueOf() + date.getTimezoneOffset() * 60 * 1000);
+
+      // Fetch blocked slots for this specific date
+      getBlockedSlotsInRange(localDate, localDate)
+        .then(slots => setBlockedSlots(slots))
+        .catch(err => console.error('Error fetching blocked slots:', err));
+    }
+  }, [selectedDateString]);
+
   const availableSlots = useMemo(() => {
     if (!selectedDateString) return [];
 
@@ -53,9 +69,24 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedDateStri
       }
     });
 
+    // Filter out booked slots
     const bookedTimes = new Set(bookedSlots.map(d => d.getTime()));
-    return slots.filter(slot => !bookedTimes.has(slot.getTime()));
-  }, [selectedDateString, bookedSlots]);
+
+    // Filter out blocked slots
+    const blockedTimes = new Set(
+      blockedSlots.map(bs => {
+        const [hours, minutes] = bs.blocked_time.split(':').map(Number);
+        const blockedDate = new Date(localDate);
+        blockedDate.setHours(hours, minutes, 0, 0);
+        return blockedDate.getTime();
+      })
+    );
+
+    return slots.filter(slot => {
+      const slotTime = slot.getTime();
+      return !bookedTimes.has(slotTime) && !blockedTimes.has(slotTime);
+    });
+  }, [selectedDateString, bookedSlots, blockedSlots]);
   
   if (!selectedDateString) {
     return (

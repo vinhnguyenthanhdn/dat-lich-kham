@@ -123,7 +123,13 @@ export default function AdminDashboard() {
                 onClick={() => navigate('/admin/appointments')}
                 className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
-                Danh sách bệnh nhân
+                Danh sách BN
+              </button>
+              <button
+                onClick={() => navigate('/admin/blocked-slots')}
+                className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              >
+                Khóa khung giờ
               </button>
               <button
                 onClick={handleLogout}

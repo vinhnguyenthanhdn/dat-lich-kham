@@ -254,6 +254,12 @@ export default function AdminAppointments() {
                 ← Dashboard
               </button>
               <button
+                onClick={() => navigate('/admin/blocked-slots')}
+                className="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              >
+                Khóa khung giờ
+              </button>
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
               >

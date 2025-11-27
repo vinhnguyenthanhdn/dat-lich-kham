@@ -297,3 +297,95 @@ export async function deleteAppointment(id: string) {
 
   return true;
 }
+
+// ============ BLOCKED SLOTS FUNCTIONS ============
+
+export interface BlockedSlot {
+  id?: string;
+  blocked_date: string; // YYYY-MM-DD format
+  blocked_time: string; // HH:MM format (e.g., "08:30", "15:00")
+  reason?: string;
+  created_at?: string;
+}
+
+// Get all blocked slots
+export async function getAllBlockedSlots() {
+  const { data, error } = await supabase
+    .from('blocked_slots')
+    .select('*')
+    .order('blocked_date', { ascending: true })
+    .order('blocked_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching blocked slots:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+// Get blocked slots for a specific date range
+export async function getBlockedSlotsInRange(startDate: Date, endDate: Date) {
+  const { data, error } = await supabase
+    .from('blocked_slots')
+    .select('*')
+    .gte('blocked_date', startDate.toISOString().split('T')[0])
+    .lte('blocked_date', endDate.toISOString().split('T')[0])
+    .order('blocked_date', { ascending: true })
+    .order('blocked_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching blocked slots in range:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// Add a blocked slot
+export async function addBlockedSlot(slot: Omit<BlockedSlot, 'id' | 'created_at'>) {
+  const { data, error } = await supabase
+    .from('blocked_slots')
+    .insert([slot])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding blocked slot:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Delete a blocked slot
+export async function deleteBlockedSlot(id: string) {
+  const { error } = await supabase
+    .from('blocked_slots')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting blocked slot:', error);
+    throw error;
+  }
+
+  return true;
+}
+
+// Update a blocked slot
+export async function updateBlockedSlot(id: string, updates: Partial<Omit<BlockedSlot, 'id' | 'created_at'>>) {
+  const { data, error } = await supabase
+    .from('blocked_slots')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating blocked slot:', error);
+    throw error;
+  }
+
+  return data;
+}

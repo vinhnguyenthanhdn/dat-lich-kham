@@ -6,6 +6,7 @@ import App from './App';
 import AdminLogin from './src/pages/AdminLogin';
 import AdminDashboard from './src/pages/AdminDashboard';
 import AdminAppointments from './src/pages/AdminAppointments';
+import AdminBlockedSlots from './src/pages/AdminBlockedSlots';
 import ProtectedRoute from './src/components/admin/ProtectedRoute';
 
 const rootElement = document.getElementById('root');
@@ -36,6 +37,14 @@ root.render(
           element={
             <ProtectedRoute>
               <AdminAppointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/blocked-slots"
+          element={
+            <ProtectedRoute>
+              <AdminBlockedSlots />
             </ProtectedRoute>
           }
         />
