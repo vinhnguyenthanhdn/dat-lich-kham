@@ -68,7 +68,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
                 Xin chân thành cảm ơn!
               </p>
               <p className="text-sm text-gray-400 italic">
-                ✨ Vì một thế hệ trẻ khỏe mạnh và toàn diện ✨
+                ✨ Vì một thế hệ trẻ khỏe mạnh và <span className="whitespace-nowrap">toàn diện</span> ✨
               </p>
             </div>
           </div>
